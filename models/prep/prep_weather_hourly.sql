@@ -1,6 +1,6 @@
 WITH hourly_data AS (
     SELECT * 
-    FROM staging_weather_hourly
+    FROM {{ref('staging_flights_one_month')}}
 ),
 add_features AS (
     SELECT *
