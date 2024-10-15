@@ -2,7 +2,7 @@
 
 -- just checking source table
 SELECT * FROM prep_flights
----------------------------------------------------
+--------------------------------------------------
 /* THE ACTUAL QUERY */
 
 -- unique number of departures connections
