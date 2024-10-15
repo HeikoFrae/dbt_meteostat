@@ -44,4 +44,4 @@ SELECT
 FROM prep_airports
 RIGHT JOIN total_stats
 USING (faa)
-ORDER BY country;
+ORDER BY country
