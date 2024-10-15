@@ -10,20 +10,20 @@ WITH route AS (
            MIN(arr_delay) AS min_arr_delay,
            SUM(cancelled) AS cancelled_total,
            SUM(diverted) AS diverted_total
-    FROM "hh_analytics_24_2"."s_heikofraembs"."prep_flights" pf
+    FROM {{ref('prep_flights')}} 
     GROUP BY origin, dest
 ),
 origin_airport AS (
     SELECT faa AS origin_faa,
            country AS origin_country,
            region AS origin_region
-    FROM "hh_analytics_24_2"."s_heikofraembs"."prep_airports"
+    FROM {{ref('prep_airports')}}
 ),
 dest_airport AS (
     SELECT faa AS dest_faa,
            country AS dest_country,
            region AS dest_region
-    FROM "hh_analytics_24_2"."s_heikofraembs"."prep_airports"
+    FROM {{ref('prep_airports')}}
 )
 SELECT 
     route.origin,
