@@ -1,8 +1,3 @@
--- In a table `mart_faa_stats.sql` we want to see **for each airport over all time**:
---------------------------------------------------
-/* THE ACTUAL QUERY */
-
--- unique number of departures connections
 create table "hh_analytics_24_2"."s_heikofraembs"."mart_faa_stats__dbt_tmp"
 as
 (
