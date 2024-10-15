@@ -1,51 +1,47 @@
-create table "hh_analytics_24_2"."s_heikofraembs"."mart_faa_stats__dbt_tmp"
-as
-(
-    -- unique number of departures connections
-    WITH departures AS (
-        SELECT origin AS faa
-            ,COUNT(origin) AS nunique_from 
-            ,COUNT(sched_dep_time) AS dep_planned
-            ,SUM(cancelled) AS dep_cancelled
-            ,SUM(diverted) AS dep_diverted
-            ,COUNT(arr_time) AS dep_n_flights
-            ,COUNT(DISTINCT tail_number) AS dep_nunique_tails
-            ,COUNT(DISTINCT airline) AS dep_nunique_airlines
-        FROM "hh_analytics_24_2"."s_heikofraembs"."prep_flights"
-        GROUP BY origin
-    ),
-    -- unique number of arrival connections
-    arrivals AS (
-        SELECT dest AS faa
-            ,COUNT(dest) AS nunique_to
-            ,COUNT(sched_dep_time) AS arr_planned
-            ,SUM(cancelled) AS arr_cancelled
-            ,SUM(diverted) AS arr_diverted
-            ,COUNT(arr_time) AS arr_n_flights
-            ,COUNT(DISTINCT tail_number) AS arr_nunique_tails
-            ,COUNT(DISTINCT airline) AS arr_nunique_airlines
-        FROM "hh_analytics_24_2"."s_heikofraembs"."prep_flights"
-        GROUP BY dest
-    ),
-    -- total statistics combining arrivals and departures
-    total_stats AS (
-        SELECT faa
-            ,nunique_to
-            ,nunique_from
-            ,dep_planned + arr_planned AS total_planed
-            ,dep_cancelled + arr_cancelled AS total_canceled
-            ,dep_diverted + arr_diverted AS total_diverted
-            ,dep_n_flights + arr_n_flights AS total_flights
-        FROM departures
-        JOIN arrivals
-        USING (faa)
-    )
-    -- final select to create the table
-    SELECT country
-        -- No need to explicitly select faa here, it's already included in total_stats
-        ,total_stats.*
-    FROM "hh_analytics_24_2"."s_heikofraembs"."prep_airports"
-    RIGHT JOIN total_stats
-    USING (faa)
-    ORDER BY country
+WITH departures AS (
+					SELECT origin AS faa
+							,COUNT(origin) AS nunique_from 
+							,COUNT(sched_dep_time) AS dep_planned -- how many flight were planned in total (departures)
+							,SUM(cancelled) AS dep_cancelled -- how many flights were canceled in total (departures)
+							,SUM(diverted) AS dep_diverted -- how many flights were diverted in total (departures)
+							,COUNT(arr_time) AS dep_n_flights-- how many flights actually occured in total (departures)
+							,COUNT(DISTINCT tail_number) AS dep_nunique_tails -- *(optional) how many unique airplanes travelled on average*
+							,COUNT(DISTINCT airline) AS dep_nunique_airlines -- *(optional) how many unique airlines were in service  on average* 
+					FROM prep_flights
+					GROUP BY origin
+),
+-- unique number of arrival connections
+arrivals AS (
+					SELECT dest AS faa
+							,COUNT(dest) AS nunique_to 
+							,COUNT(sched_dep_time) AS arr_planned -- how many flight were planned in total (arrivals)
+							,SUM(cancelled) AS arr_cancelled -- how many flights were canceled in total (arrivals)
+							,SUM(diverted) AS arr_diverted -- how many flights were diverted in total (arrivals)
+							,COUNT(arr_time)  AS arr_n_flights -- how many flights actually occured in total (arrivals)
+							,COUNT(DISTINCT tail_number) AS arr_nunique_tails -- *(optional) how many unique airplanes travelled on average*
+							,COUNT(DISTINCT airline) AS arr_nunique_airlines -- *(optional) how many unique airlines were in service  on average* 
+					FROM prep_flights
+					GROUP BY dest
+),
+total_stats AS (
+					SELECT faa
+							,nunique_to
+							,nunique_from
+							,dep_planned + arr_planned AS total_planed
+							,dep_cancelled + arr_cancelled AS total_canceled
+							,dep_diverted + arr_diverted AS total_diverted
+							,dep_n_flights + arr_n_flights AS total_flights
+					FROM departures
+					JOIN arrivals
+					-- ON arrivals.faa = departures.faa
+					USING (faa)
 )
+-- add city, country and name of the airport
+SELECT   
+		country
+		,faa
+		,total_stats.*
+FROM prep_airports
+RIGHT JOIN total_stats
+USING (faa)
+ORDER BY country;
