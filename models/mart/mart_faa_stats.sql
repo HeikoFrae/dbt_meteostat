@@ -39,7 +39,6 @@ total_stats AS (
 -- add city, country and name of the airport
 SELECT   
 		country
-		,faa
 		,total_stats.*
 FROM {{ref('prep_airports')}}
 RIGHT JOIN total_stats
